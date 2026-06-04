@@ -1,0 +1,14 @@
+<Solution>
+    <Folder Name="/OtherFile/">
+        <File Path="Directory.Build.props" />
+        <File Path="Directory.Packages.props" />
+        <File Path="DownloadModel.ps1" />
+        <File Path="README.md" />
+    </Folder>
+    <Project Path="MossTtsSharp.Backend/MossTtsSharp.Backend.csproj" />
+    <Project Path="MossTtsSharp/MossTtsSharp.csproj" />
+    <Project Path="MossTtsSharp.DirectML/MossTtsSharp.DirectML.csproj" />
+    <Project Path="MossTtsSharp.Cpu/MossTtsSharp.Cpu.csproj" />
+    <Project Path="MossTtsSharp.Cuda/MossTtsSharp.Cuda.csproj" />
+    <Project Path="MossTtsSharp.Demo/MossTtsSharp.Demo.csproj" />
+</Solution>

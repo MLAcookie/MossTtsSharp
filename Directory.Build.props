@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <Version>0.1.0</Version>
+    <Authors>MLACookie</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/MLACookie/MossTtsSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MLACookie/MossTtsSharp</RepositoryUrl>
+  </PropertyGroup>
+</Project>

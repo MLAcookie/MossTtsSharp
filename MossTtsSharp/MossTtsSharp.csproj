@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PackageId>MossTtsSharp</PackageId>
+    <Description>MossTtsSharp C# inference library — text-to-speech synthesis using ONNX Runtime. Supports CPU, DirectML (Windows), and CUDA (Linux) backends.</Description>
+    <PackageTags>TTS;Speech;ONNX;DirectML;CUDA;TextToSpeech</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MossTtsSharp.Backend\MossTtsSharp.Backend.csproj" />
+    <PackageReference Include="SIL.Machine.Tokenization.SentencePiece" />
+  </ItemGroup>
+
+</Project>

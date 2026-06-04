@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <PackageId>MossTtsSharp.Cpu</PackageId>
+        <Description>MossTtsSharp Cpu backend — adds Cpu ONNX Runtime.</Description>
+        <PackageTags>TTS;Speech;ONNX;CPU;TextToSpeech</PackageTags>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MossTtsSharp\MossTtsSharp.csproj"/>
+        <PackageReference Include="Microsoft.ML.OnnxRuntime"/>
+    </ItemGroup>
+</Project>

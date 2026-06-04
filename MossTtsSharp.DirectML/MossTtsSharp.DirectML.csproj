@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PackageId>MossTtsSharp.DirectML</PackageId>
+    <Description>MossTtsSharp DirectML backend — adds DirectML ONNX Runtime for GPU-accelerated inference on Windows.</Description>
+    <PackageTags>TTS;Speech;ONNX;DirectML;TextToSpeech</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MossTtsSharp\MossTtsSharp.csproj" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <OnnxRuntimeVersion>1.24.4</OnnxRuntimeVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime.Managed" Version="$(OnnxRuntimeVersion)" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="$(OnnxRuntimeVersion)" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime.Gpu" Version="$(OnnxRuntimeVersion)" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="$(OnnxRuntimeVersion)" />
+    <PackageVersion Include="SIL.Machine.Tokenization.SentencePiece" Version="3.8.3" />
+    <PackageVersion Include="NAudio" Version="2.2.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.8" />
+  </ItemGroup>
+</Project>
