@@ -7,8 +7,7 @@
 > If you have any suggestions or encounter issues, please open
 > an [Issue](https://github.com/MLACookie/MossTtsSharp/issues).
 
-An unofficial C# binding for [MOSS-TTS](https://github.com/OpenMOSS), a text-to-speech synthesis system powered by ONNX
-Runtime.
+An unofficial C# binding for [MOSS-TTS](https://github.com/OpenMOSS/MOSS-TTS-Nano), a text-to-speech synthesis system powered by ONNX Runtime.
 
 ## Project Structure
 
