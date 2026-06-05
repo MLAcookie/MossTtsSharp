@@ -28,17 +28,19 @@ internal class FrameGenerator : IDisposable
         _rng = new Random();
     }
 
-    public (int[] audioTokens, bool shouldContinue) GenerateFrame(float[] globalHidden)
+    public (int[] audioTokens, bool shouldContinue) GenerateFrame(float[] globalHidden, float? noise = null)
     {
-        float assistantRandomU = (float)_rng.NextDouble();
+        float assistantRandomU = noise ?? (float)_rng.NextDouble();
         float[] audioRandomU = new float[Nvq];
         for (int i = 0; i < Nvq; i++)
-            audioRandomU[i] = (float)_rng.NextDouble();
+            audioRandomU[i] = noise ?? (float)_rng.NextDouble();
 
         int[] maskFlat = new int[Nvq * CodebookSize];
         for (int c = 0; c < Nvq; c++)
+        {
             for (int k = 0; k < CodebookSize; k++)
                 maskFlat[c * CodebookSize + k] = _repetitionSeenMask[c, k];
+        }
 
         var inputs = new List<NamedOnnxValue>
         {
@@ -59,8 +61,7 @@ internal class FrameGenerator : IDisposable
         for (int c = 0; c < Nvq; c++)
         {
             int token = tokens[c];
-            if (token >= 0 && token < CodebookSize)
-                _repetitionSeenMask[c, token] = 1;
+            if (token >= 0 && token < CodebookSize) _repetitionSeenMask[c, token] = 1;
         }
 
         return (tokens, shouldContinue);

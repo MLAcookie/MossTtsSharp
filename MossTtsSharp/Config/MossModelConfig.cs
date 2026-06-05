@@ -29,12 +29,4 @@ public static class MossModelConfig
     public const int Channels = 2;
     // ---- Default generation params ----
     public const int MaxNewFrames = 300;
-    public const float TextTemperature = 1.0f;
-    public const float TextTopP = 1.0f;
-    public const int TextTopK = 50;
-    public const float AudioTemperature = 0.8f;
-    public const float AudioTopP = 0.95f;
-    public const int AudioTopK = 25;
-    public const float AudioRepetitionPenalty = 1.2f;
-    public const bool DoSample = true;
 }

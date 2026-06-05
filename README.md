@@ -4,20 +4,22 @@
 >
 > I am new to the AI field, and this project has not been extensively tested.
 > **It is not recommended for production use.**
-> If you have any suggestions or encounter issues, please open an [Issue](https://github.com/MLACookie/MossTtsSharp/issues).
+> If you have any suggestions or encounter issues, please open
+> an [Issue](https://github.com/MLACookie/MossTtsSharp/issues).
 
-An unofficial C# binding for [MOSS-TTS](https://github.com/OpenMOSS), a text-to-speech synthesis system powered by ONNX Runtime.
+An unofficial C# binding for [MOSS-TTS](https://github.com/OpenMOSS), a text-to-speech synthesis system powered by ONNX
+Runtime.
 
 ## Project Structure
 
-| Project | Description |
-|---|---|
-| `MossTtsSharp` | Core inference library — pipeline, tokenizer, audio codec, ONNX models |
-| `MossTtsSharp.Backend` | Backend abstraction for platform-specific ONNX Runtime |
-| `MossTtsSharp.Cpu` | CPU backend |
-| `MossTtsSharp.Cuda` | CUDA backend (NVIDIA GPU) |
-| `MossTtsSharp.DirectML` | DirectML backend (Windows GPU) |
-| `MossTtsSharp.Demo` | CLI tool (`mosstts syn` / `mosstts stream`) |
+| Project                 | Description                                                            |
+|-------------------------|------------------------------------------------------------------------|
+| `MossTtsSharp`          | Core inference library — pipeline, tokenizer, audio codec, ONNX models |
+| `MossTtsSharp.Backend`  | Backend abstraction for platform-specific ONNX Runtime                 |
+| `MossTtsSharp.Cpu`      | CPU backend                                                            |
+| `MossTtsSharp.Cuda`     | CUDA backend (NVIDIA GPU)                                              |
+| `MossTtsSharp.DirectML` | DirectML backend (Windows GPU)                                         |
+| `MossTtsSharp.Demo`     | CLI tool (`mosstts syn` / `mosstts stream`)                            |
 
 ## Quick Start
 
@@ -74,18 +76,17 @@ $env:MOSSTTS_MODELS_DIR = "D:\Models\MossTTS"
 ## CLI Reference
 
 ```
-mosstts syn     -t <text> -p <audio> [-o <file>] [--no-sample] [-m <dir>]
-mosstts stream  -t <text> -p <audio> [-o <file>] [-m <dir>]
+mosstts syn     -t <text> -p <audio> [-o <file>] [-m <dir>] [-n <value>]
+mosstts stream  -t <text> -p <audio> [-o <file>] [-m <dir>] [-n <value>]
 ```
 
-| Option | Description |
-|---|---|
-| `-t, --text` | Text to synthesize **(required)** |
-| `-p, --prompt` | Audio prompt file (.wav, .mp3) **(required)** |
-| `-o, --output` | Output WAV file (if omitted, play directly) |
-| `-m, --models-dir` | Models root directory (default: `./OfficialOnnx` or `$MOSSTTS_MODELS_DIR`) |
-| `-s, --seed` | Random seed for reproducibility |
-| `--no-sample` | Disable random sampling (deterministic mode) |
+| Option             | Description                                                           |
+|--------------------|-----------------------------------------------------------------------|
+| `-t, --text`       | Text to synthesize **(required)**                                     |
+| `-p, --prompt`     | Audio prompt file (.wav, .mp3) **(required)**                         |
+| `-o, --output`     | Output WAV file (if omitted, play directly)                           |
+| `-m, --models-dir` | Models root directory (or set `$MOSSTTS_MODELS_DIR`)                  |
+| `-n, --noise`      | Fixed noise value for deterministic output (omit for random sampling) |
 
 ## API Usage
 

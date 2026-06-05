@@ -58,3 +58,6 @@ nunit-*.xml
 
 # Rider
 .idea/
+
+# MossTts Model File
+MossTtsModel/

@@ -20,25 +20,21 @@ internal class TtsGenerator
     public IEnumerable<int[]> GenerateStream(
         int[][] promptInputIds,
         bool[] promptAttentionMask,
-        int maxNewFrames = MossModelConfig.MaxNewFrames)
+        int maxNewFrames = MossModelConfig.MaxNewFrames,
+        float? noise = null)
     {
         _globalTransformer.ResetCache();
         _frameGenerator.ResetMask();
 
         float[] globalHidden = _globalTransformer.Prefill(promptInputIds, promptAttentionMask);
-        if (globalHidden.Length == 0)
-            yield break;
+        if (globalHidden.Length == 0) yield break;
 
         for (int step = 0; step < maxNewFrames; step++)
         {
-            var (audioTokens, shouldContinue) = _frameGenerator.GenerateFrame(globalHidden);
-
-            if (!shouldContinue)
-                break;
-
+            var (audioTokens, shouldContinue) = _frameGenerator.GenerateFrame(globalHidden, noise);
+            if (!shouldContinue) break;
             int[] genRow = PromptBuilder.BuildGenerationRow(audioTokens);
             yield return audioTokens;
-
             globalHidden = _globalTransformer.Step(genRow);
         }
     }
@@ -46,8 +42,9 @@ internal class TtsGenerator
     public int[][] Generate(
         int[][] promptInputIds,
         bool[] promptAttentionMask,
-        int maxNewFrames = MossModelConfig.MaxNewFrames)
+        int maxNewFrames = MossModelConfig.MaxNewFrames,
+        float? noise = null)
     {
-        return GenerateStream(promptInputIds, promptAttentionMask, maxNewFrames).ToArray();
+        return GenerateStream(promptInputIds, promptAttentionMask, maxNewFrames, noise).ToArray();
     }
 }

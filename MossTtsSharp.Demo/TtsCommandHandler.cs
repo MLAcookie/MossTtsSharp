@@ -8,22 +8,22 @@ namespace MossTtsSharp.Demo;
 public static class TtsCommandHandler
 {
     public static async Task<int> ExecuteSynAsync(
-        string text, FileInfo prompt, FileInfo? output, DirectoryInfo? modelsDir, bool noSample, int? seed)
+        string text, FileInfo prompt, FileInfo? output, DirectoryInfo? modelsDir, float? noise)
     {
-        if (seed.HasValue)
-            Console.WriteLine($"Seed: {seed.Value} (note: sampling is handled inside ONNX model, seed has no effect)");
+        if (noise.HasValue)
+            Console.WriteLine($"Noise: {noise.Value:F4} (deterministic output)");
 
         try
         {
             var config = new MossConfig { Device = new CpuBackend() };
             if (modelsDir != null) config.ModelsRoot = modelsDir.FullName;
 
-            LogMode(text, prompt.FullName, noSample, output?.FullName);
+            LogMode(text, prompt.FullName, output?.FullName);
 
             await using var pipeline = await MossTtsPipeline.CreateAsync(config);
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var (waveform, sampleRate) = pipeline.Synthesize(text, prompt.FullName);
+            var (waveform, sampleRate) = pipeline.Synthesize(text, prompt.FullName, noise);
             sw.Stop();
             Console.WriteLine(
                 $"Generated: {waveform.Length / (float)sampleRate / MossModelConfig.Channels:F2}s in {sw.Elapsed.TotalSeconds:F1}s");
@@ -49,17 +49,17 @@ public static class TtsCommandHandler
     }
 
     public static async Task<int> ExecuteStreamAsync(
-        string text, FileInfo prompt, FileInfo? output, DirectoryInfo? modelsDir, bool noSample, int? seed)
+        string text, FileInfo prompt, FileInfo? output, DirectoryInfo? modelsDir, float? noise)
     {
-        if (seed.HasValue)
-            Console.WriteLine($"Seed: {seed.Value} (note: sampling is handled inside ONNX model, seed has no effect)");
+        if (noise.HasValue)
+            Console.WriteLine($"Noise: {noise.Value:F4} (deterministic output)");
 
         try
         {
             var config = new MossConfig { Device = new CpuBackend() };
             if (modelsDir != null) config.ModelsRoot = modelsDir.FullName;
 
-            LogMode(text, prompt.FullName, noSample, output?.FullName);
+            LogMode(text, prompt.FullName, output?.FullName);
 
             await using var pipeline = await MossTtsPipeline.CreateAsync(config);
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -74,7 +74,7 @@ public static class TtsCommandHandler
                     allSamples.AddRange(audio);
                     frameCount++;
                     Console.Write(".");
-                });
+                }, noise);
 
                 sw.Stop();
                 Console.WriteLine();
@@ -95,7 +95,7 @@ public static class TtsCommandHandler
                 {
                     onChunk(audio, 0);
                     Console.Write(".");
-                });
+                }, noise);
 
                 finish();
                 sw.Stop();
@@ -111,12 +111,11 @@ public static class TtsCommandHandler
         }
     }
 
-    private static void LogMode(string text, string promptFile, bool noSample, string? outputPath)
+    private static void LogMode(string text, string promptFile, string? outputPath)
     {
         Console.WriteLine($"Prompt: {Path.GetFileName(promptFile)}");
         Console.WriteLine($"Text:   {text}");
-        Console.Write(noSample ? "Mode:   deterministic" : "Mode:   sampling");
-        Console.WriteLine(outputPath != null ? $" -> {outputPath}" : " -> playback");
+        Console.WriteLine(outputPath != null ? $"Output: {outputPath}" : "Output: playback");
         Console.WriteLine();
     }
 }

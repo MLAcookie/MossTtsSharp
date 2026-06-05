@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MossTtsSharp.Backend\MossTtsSharp.Backend.csproj" />
-    <PackageReference Include="SIL.Machine.Tokenization.SentencePiece" />
+    <PackageReference Include="Google.Protobuf" />
   </ItemGroup>
 
 </Project>

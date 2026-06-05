@@ -14,7 +14,6 @@ public class MossConfig
     public string? TtsModelDir { get; set; }
     public string? CodecModelDir { get; set; }
     public string? TokenizerModelFile { get; set; }
-    public string? VocabJsonFile { get; set; }
 
     public BackendProvider Device { get; set; }
 
@@ -42,23 +41,6 @@ public class MossConfig
             return TokenizerModelFile;
         var ttsDir = ResolveTtsModelDir();
         return Path.Combine(ttsDir, "tokenizer.model");
-    }
-
-    public string ResolveVocabJsonFile()
-    {
-        if (!string.IsNullOrWhiteSpace(VocabJsonFile)) return VocabJsonFile;
-        var ttsDir = ResolveTtsModelDir();
-        var path = Path.Combine(ttsDir, "vocab.json");
-        if (File.Exists(path)) return path;
-        var root = ModelsRoot ?? GetEnv("MOSSTTS_MODELS_DIR");
-        if (root != null)
-        {
-            path = Path.Combine(root, "vocab.json");
-            if (File.Exists(path)) return path;
-        }
-
-        throw new InvalidOperationException(
-            "vocab.json not found. Set VocabJsonFile explicitly, or place vocab.json in the TTS model directory.");
     }
 
     private static string? GetEnv(string name) =>

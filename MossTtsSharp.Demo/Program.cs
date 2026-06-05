@@ -28,14 +28,9 @@ var modelsDirOption = new Option<DirectoryInfo>("--models-dir", "-m")
     Description = "Models root directory (default: ./OfficialOnnx)"
 };
 
-var noSampleOption = new Option<bool>("--no-sample")
+var noiseOption = new Option<float?>("--noise", "-n")
 {
-    Description = "Disable random sampling"
-};
-
-var seedOption = new Option<int?>("--seed", "-s")
-{
-    Description = "Random seed for reproducibility"
+    Description = "Fixed noise value for deterministic output (omit for random sampling)"
 };
 
 var synCommand = new Command("syn", "Synthesize text to speech");
@@ -44,15 +39,13 @@ synCommand.Options.Add(textOption);
 synCommand.Options.Add(promptOption);
 synCommand.Options.Add(outputOption);
 synCommand.Options.Add(modelsDirOption);
-synCommand.Options.Add(noSampleOption);
-synCommand.Options.Add(seedOption);
+synCommand.Options.Add(noiseOption);
 synCommand.SetAction(ctx => TtsCommandHandler.ExecuteSynAsync(
     ctx.GetValue(textOption)!,
     ctx.GetValue(promptOption)!,
     ctx.GetValue(outputOption),
     ctx.GetValue(modelsDirOption),
-    ctx.GetValue(noSampleOption),
-    ctx.GetValue(seedOption)
+    ctx.GetValue(noiseOption)
 ));
 
 var streamCommand = new Command("stream", "Stream text to speech");
@@ -60,15 +53,13 @@ streamCommand.Options.Add(textOption);
 streamCommand.Options.Add(promptOption);
 streamCommand.Options.Add(outputOption);
 streamCommand.Options.Add(modelsDirOption);
-streamCommand.Options.Add(noSampleOption);
-streamCommand.Options.Add(seedOption);
+streamCommand.Options.Add(noiseOption);
 streamCommand.SetAction(ctx => TtsCommandHandler.ExecuteStreamAsync(
     ctx.GetValue(textOption)!,
     ctx.GetValue(promptOption)!,
     ctx.GetValue(outputOption),
     ctx.GetValue(modelsDirOption),
-    ctx.GetValue(noSampleOption),
-    ctx.GetValue(seedOption)
+    ctx.GetValue(noiseOption)
 ));
 
 var rootCommand = new RootCommand("MossTTS Demo");

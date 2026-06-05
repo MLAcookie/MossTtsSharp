@@ -37,7 +37,6 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
         var ttsDir = config.ResolveTtsModelDir();
         var codecDir = config.ResolveCodecModelDir();
         var tkPath = config.ResolveTokenizerModelFile();
-        var vocabPath = config.ResolveVocabJsonFile();
 
         GlobalTransformer? global = null;
         FrameGenerator? frame = null;
@@ -50,7 +49,7 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
             var globalTask = Task.Run(() => new GlobalTransformer(ttsDir, backend), ct);
             var frameTask = Task.Run(() => new FrameGenerator(ttsDir, backend), ct);
             var codecTask = Task.Run(() => new AudioCodec(codecDir), ct);
-            var tkTask = Task.Run(() => new SentencePieceTokenizer(tkPath, vocabPath), ct);
+            var tkTask = Task.Run(() => new SentencePieceTokenizer(tkPath), ct);
 
             await Task.WhenAll(globalTask, frameTask, codecTask, tkTask);
             ct.ThrowIfCancellationRequested();
@@ -118,10 +117,10 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
     }
 
     public (float[] waveform, int sampleRate) Synthesize(
-        string text, string promptAudioPath)
+        string text, string promptAudioPath, float? noise = null)
     {
         var (promptIds, promptMask) = PreparePrompt(text, promptAudioPath);
-        var audioTokens = _generator.Generate(promptIds, promptMask);
+        var audioTokens = _generator.Generate(promptIds, promptMask, noise: noise);
 
         if (audioTokens.Length == 0) return (Array.Empty<float>(), MossModelConfig.SampleRate);
 
@@ -138,21 +137,21 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
     }
 
     public Task<(float[] waveform, int sampleRate)> SynthesizeAsync(
-        string text, string promptAudioPath, CancellationToken ct = default)
+        string text, string promptAudioPath, float? noise = null, CancellationToken ct = default)
     {
         return Task.Run(() =>
         {
             ct.ThrowIfCancellationRequested();
-            return Synthesize(text, promptAudioPath);
+            return Synthesize(text, promptAudioPath, noise);
         }, ct);
     }
 
-    public void SynthesizeStream(string text, string promptAudioPath, Action<float[]> onAudioChunk)
+    public void SynthesizeStream(string text, string promptAudioPath, Action<float[]> onAudioChunk, float? noise = null)
     {
         var (promptIds, promptMask) = PreparePrompt(text, promptAudioPath);
         using var decoder = new StreamingDecoder(_codecModelDir);
 
-        foreach (var frame in _generator.GenerateStream(promptIds, promptMask))
+        foreach (var frame in _generator.GenerateStream(promptIds, promptMask, noise: noise))
         {
             float[] audio = decoder.DecodeFrame(frame);
             if (audio.Length > 0) onAudioChunk(audio);
