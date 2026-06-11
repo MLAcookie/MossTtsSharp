@@ -11,7 +11,14 @@ public class CudaBackend : BackendProvider
     public override SessionOptions CreateSessionOptions()
     {
         var opts = new SessionOptions();
-        opts.AppendExecutionProvider_CUDA(0);
+        try
+        {
+            opts.AppendExecutionProvider_CUDA(0);
+        }
+        catch
+        {
+        }
+        opts.AppendExecutionProvider_CPU();
         return opts;
     }
 }

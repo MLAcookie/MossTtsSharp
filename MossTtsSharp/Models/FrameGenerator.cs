@@ -30,15 +30,15 @@ internal class FrameGenerator : IDisposable
 
     public (int[] audioTokens, bool shouldContinue) GenerateFrame(float[] globalHidden, float? noise = null)
     {
-        float assistantRandomU = noise ?? (float)_rng.NextDouble();
-        float[] audioRandomU = new float[Nvq];
-        for (int i = 0; i < Nvq; i++)
+        var assistantRandomU = noise ?? (float)_rng.NextDouble();
+        var audioRandomU = new float[Nvq];
+        for (var i = 0; i < Nvq; i++)
             audioRandomU[i] = noise ?? (float)_rng.NextDouble();
 
-        int[] maskFlat = new int[Nvq * CodebookSize];
-        for (int c = 0; c < Nvq; c++)
+        var maskFlat = new int[Nvq * CodebookSize];
+        for (var c = 0; c < Nvq; c++)
         {
-            for (int k = 0; k < CodebookSize; k++)
+            for (var k = 0; k < CodebookSize; k++)
                 maskFlat[c * CodebookSize + k] = _repetitionSeenMask[c, k];
         }
 
@@ -58,9 +58,9 @@ internal class FrameGenerator : IDisposable
         var shouldContinue = results[0].AsTensor<int>().ToArray()[0] != 0;
         var tokens = results[1].AsTensor<int>().ToArray();
 
-        for (int c = 0; c < Nvq; c++)
+        for (var c = 0; c < Nvq; c++)
         {
-            int token = tokens[c];
+            var token = tokens[c];
             if (token >= 0 && token < CodebookSize) _repetitionSeenMask[c, token] = 1;
         }
 

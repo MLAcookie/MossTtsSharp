@@ -44,7 +44,7 @@ public static class AudioPlayer
             provider.AddSamples(bytes, 0, bytes.Length);
         };
 
-        Action finish = () =>
+        var finish = () =>
         {
             while (provider.BufferedDuration.TotalMilliseconds > 50) Thread.Sleep(10);
             Thread.Sleep(100);

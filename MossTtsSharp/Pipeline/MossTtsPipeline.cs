@@ -22,7 +22,8 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
         AudioCodec audioCodec,
         TtsGenerator generator,
         PromptBuilder promptBuilder,
-        string codecModelDir)
+        string codecModelDir
+    )
     {
         _globalTransformer = globalTransformer;
         _frameGenerator = frameGenerator;
@@ -32,7 +33,10 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
         _codecModelDir = codecModelDir;
     }
 
-    public static async Task<MossTtsPipeline> CreateAsync(MossConfig config, CancellationToken ct = default)
+    public static async Task<MossTtsPipeline> CreateAsync(
+        MossConfig config,
+        CancellationToken ct = default
+    )
     {
         var ttsDir = config.ResolveTtsModelDir();
         var codecDir = config.ResolveCodecModelDir();
@@ -74,21 +78,23 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
         }
     }
 
-    private (int[][] promptIds, bool[] promptMask) PreparePrompt(string text, string promptAudioPath)
+    private (int[][] promptIds, bool[] promptMask) PreparePrompt(
+        string text,
+        string promptAudioPath
+    )
     {
         var (refSamples, refSr, refCh) = AudioFile.Read(promptAudioPath);
-
-        float[] ref48k = refSamples;
+        var ref48k = refSamples;
         if (refSr != MossModelConfig.SampleRate)
             ref48k = AudioResampler.Resample(refSamples, refSr, refCh, MossModelConfig.SampleRate);
 
-        int audioLenMono = ref48k.Length / refCh;
-        float[] refStereo = new float[audioLenMono * MossModelConfig.Channels];
-        bool isMonoInput = refCh == 1;
+        var audioLenMono = ref48k.Length / refCh;
+        var refStereo = new float[audioLenMono * MossModelConfig.Channels];
+        var isMonoInput = refCh == 1;
 
         if (isMonoInput)
         {
-            for (int t = 0; t < audioLenMono; t++)
+            for (var t = 0; t < audioLenMono; t++)
             {
                 refStereo[t] = ref48k[t];
                 refStereo[t + audioLenMono] = ref48k[t];
@@ -96,7 +102,7 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
         }
         else
         {
-            for (int t = 0; t < audioLenMono; t++)
+            for (var t = 0; t < audioLenMono; t++)
             {
                 refStereo[t] = ref48k[t * 2];
                 refStereo[t + audioLenMono] = ref48k[t * 2 + 1];
@@ -105,11 +111,11 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
 
         var (encodedCodes, codeLen) = _audioCodec.Encode(refStereo);
 
-        int[][] promptAudioCodes = new int[codeLen][];
-        for (int t = 0; t < codeLen; t++)
+        var promptAudioCodes = new int[codeLen][];
+        for (var t = 0; t < codeLen; t++)
         {
             promptAudioCodes[t] = new int[MossModelConfig.Nvq];
-            for (int c = 0; c < MossModelConfig.Nvq; c++)
+            for (var c = 0; c < MossModelConfig.Nvq; c++)
                 promptAudioCodes[t][c] = (int)encodedCodes[c * codeLen + t];
         }
 
@@ -117,18 +123,22 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
     }
 
     public (float[] waveform, int sampleRate) Synthesize(
-        string text, string promptAudioPath, float? noise = null)
+        string text,
+        string promptAudioPath,
+        float? noise = null
+    )
     {
         var (promptIds, promptMask) = PreparePrompt(text, promptAudioPath);
         var audioTokens = _generator.Generate(promptIds, promptMask, noise: noise);
 
-        if (audioTokens.Length == 0) return (Array.Empty<float>(), MossModelConfig.SampleRate);
+        if (audioTokens.Length == 0)
+            return (Array.Empty<float>(), MossModelConfig.SampleRate);
 
-        int numFrames = audioTokens.Length;
-        long[] decodeCodes = new long[MossModelConfig.Nvq * numFrames];
-        for (int t = 0; t < numFrames; t++)
+        var numFrames = audioTokens.Length;
+        var decodeCodes = new long[MossModelConfig.Nvq * numFrames];
+        for (var t = 0; t < numFrames; t++)
         {
-            for (int c = 0; c < MossModelConfig.Nvq; c++)
+            for (var c = 0; c < MossModelConfig.Nvq; c++)
                 decodeCodes[c * numFrames + t] = audioTokens[t][c];
         }
 
@@ -137,33 +147,48 @@ public class MossTtsPipeline : IDisposable, IAsyncDisposable
     }
 
     public Task<(float[] waveform, int sampleRate)> SynthesizeAsync(
-        string text, string promptAudioPath, float? noise = null, CancellationToken ct = default)
+        string text,
+        string promptAudioPath,
+        float? noise = null,
+        CancellationToken ct = default
+    )
     {
-        return Task.Run(() =>
-        {
-            ct.ThrowIfCancellationRequested();
-            return Synthesize(text, promptAudioPath, noise);
-        }, ct);
+        return Task.Run(
+            () =>
+            {
+                ct.ThrowIfCancellationRequested();
+                return Synthesize(text, promptAudioPath, noise);
+            },
+            ct
+        );
     }
 
-    public void SynthesizeStream(string text, string promptAudioPath, Action<float[]> onAudioChunk, float? noise = null)
+    public void SynthesizeStream(
+        string text,
+        string promptAudioPath,
+        Action<float[]> onAudioChunk,
+        float? noise = null
+    )
     {
         var (promptIds, promptMask) = PreparePrompt(text, promptAudioPath);
         using var decoder = new StreamingDecoder(_codecModelDir);
 
         foreach (var frame in _generator.GenerateStream(promptIds, promptMask, noise: noise))
         {
-            float[] audio = decoder.DecodeFrame(frame);
-            if (audio.Length > 0) onAudioChunk(audio);
+            var audio = decoder.DecodeFrame(frame);
+            if (audio.Length > 0)
+                onAudioChunk(audio);
         }
 
-        float[] remaining = decoder.Flush();
-        if (remaining.Length > 0) onAudioChunk(remaining);
+        var remaining = decoder.Flush();
+        if (remaining.Length > 0)
+            onAudioChunk(remaining);
     }
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+            return;
         _disposed = true;
 
         _globalTransformer.Dispose();

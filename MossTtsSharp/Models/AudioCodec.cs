@@ -20,19 +20,19 @@ internal class AudioCodec : IDisposable
 
     public (long[] codes, int codeLen) Encode(float[] waveform)
     {
-        int channels = Config.MossModelConfig.Channels;
-        int audioLen = waveform.Length / channels;
-        int downsampleRate = Config.MossModelConfig.DownsampleRate;
-        int paddedLen = audioLen;
-        int remainder = audioLen % downsampleRate;
+        var channels = Config.MossModelConfig.Channels;
+        var audioLen = waveform.Length / channels;
+        var downsampleRate = Config.MossModelConfig.DownsampleRate;
+        var paddedLen = audioLen;
+        var remainder = audioLen % downsampleRate;
         if (remainder != 0)
             paddedLen = audioLen + (downsampleRate - remainder);
 
-        float[] padded = waveform;
+        var padded = waveform;
         if (paddedLen != audioLen)
         {
             padded = new float[channels * paddedLen];
-            for (int c = 0; c < channels; c++) Array.Copy(waveform, c * audioLen, padded, c * paddedLen, audioLen);
+            for (var c = 0; c < channels; c++) Array.Copy(waveform, c * audioLen, padded, c * paddedLen, audioLen);
         }
 
         var inputs = new List<NamedOnnxValue>
@@ -45,13 +45,13 @@ internal class AudioCodec : IDisposable
 
         using var results = _encoderSession.Run(inputs);
         var codesTensor = results[0].AsTensor<int>();
-        int codeLen = codesTensor.Dimensions[1];
+        var codeLen = codesTensor.Dimensions[1];
 
-        long[] flatCodes = new long[Config.MossModelConfig.Nvq * codeLen];
+        var flatCodes = new long[Config.MossModelConfig.Nvq * codeLen];
         var codesArr = codesTensor.ToArray();
-        for (int t = 0; t < codeLen; t++)
+        for (var t = 0; t < codeLen; t++)
         {
-            for (int c = 0; c < Config.MossModelConfig.Nvq; c++)
+            for (var c = 0; c < Config.MossModelConfig.Nvq; c++)
                 flatCodes[c * codeLen + t] = codesArr[t * Config.MossModelConfig.Nvq + c];
         }
 
@@ -60,12 +60,12 @@ internal class AudioCodec : IDisposable
 
     public float[] Decode(long[] codes)
     {
-        int codeLen = codes.Length / Config.MossModelConfig.Nvq;
+        var codeLen = codes.Length / Config.MossModelConfig.Nvq;
 
-        int[] flatCodesInt = new int[Config.MossModelConfig.Nvq * codeLen];
-        for (int t = 0; t < codeLen; t++)
+        var flatCodesInt = new int[Config.MossModelConfig.Nvq * codeLen];
+        for (var t = 0; t < codeLen; t++)
         {
-            for (int c = 0; c < Config.MossModelConfig.Nvq; c++)
+            for (var c = 0; c < Config.MossModelConfig.Nvq; c++)
                 flatCodesInt[t * Config.MossModelConfig.Nvq + c] = (int)codes[c * codeLen + t];
         }
 
@@ -79,14 +79,14 @@ internal class AudioCodec : IDisposable
 
         using var results = _decoderSession.Run(inputs);
         var waveform = results[0].AsTensor<float>();
-        int audioLen = results[1].AsTensor<int>().ToArray()[0];
-        int fullLen = waveform.Dimensions[2];
+        var audioLen = results[1].AsTensor<int>().ToArray()[0];
+        var fullLen = waveform.Dimensions[2];
         var flat = waveform.ToArray();
 
-        float[] interleaved = new float[audioLen * Config.MossModelConfig.Channels];
-        for (int t = 0; t < audioLen; t++)
+        var interleaved = new float[audioLen * Config.MossModelConfig.Channels];
+        for (var t = 0; t < audioLen; t++)
         {
-            for (int c = 0; c < Config.MossModelConfig.Channels; c++)
+            for (var c = 0; c < Config.MossModelConfig.Channels; c++)
                 interleaved[t * Config.MossModelConfig.Channels + c] = flat[c * fullLen + t];
         }
 

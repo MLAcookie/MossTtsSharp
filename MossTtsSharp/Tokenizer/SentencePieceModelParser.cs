@@ -2,48 +2,29 @@ using Google.Protobuf;
 
 namespace MossTtsSharp.Tokenizer;
 
-internal readonly struct PieceInfo
+internal readonly struct PieceInfo(string piece, float score, int type)
 {
-    public readonly string Piece;
-    public readonly float Score;
-    public readonly int Type;
-
-    public PieceInfo(string piece, float score, int type)
-    {
-        Piece = piece;
-        Score = score;
-        Type = type;
-    }
+    public readonly string Piece = piece;
+    public readonly float Score = score;
+    public readonly int Type = type;
 }
 
-internal readonly struct TrainerSpec
+internal readonly struct TrainerSpec(int unknownId, bool byteFallback)
 {
-    public readonly int UnknownId;
-    public readonly bool ByteFallback;
-
-    public TrainerSpec(int unknownId, bool byteFallback)
-    {
-        UnknownId = unknownId;
-        ByteFallback = byteFallback;
-    }
+    public readonly int UnknownId = unknownId;
+    public readonly bool ByteFallback = byteFallback;
 }
 
-internal readonly struct NormalizerSpec
+internal readonly struct NormalizerSpec(
+    byte[] precompiledCharsmap,
+    bool addDummyPrefix,
+    bool removeExtraWhitespaces,
+    bool escapeWhitespaces)
 {
-    public readonly byte[] PrecompiledCharsmap;
-    public readonly bool AddDummyPrefix;
-    public readonly bool RemoveExtraWhitespaces;
-    public readonly bool EscapeWhitespaces;
-
-    public NormalizerSpec(
-        byte[] precompiledCharsmap, bool addDummyPrefix,
-        bool removeExtraWhitespaces, bool escapeWhitespaces)
-    {
-        PrecompiledCharsmap = precompiledCharsmap;
-        AddDummyPrefix = addDummyPrefix;
-        RemoveExtraWhitespaces = removeExtraWhitespaces;
-        EscapeWhitespaces = escapeWhitespaces;
-    }
+    public readonly byte[] PrecompiledCharsmap = precompiledCharsmap;
+    public readonly bool AddDummyPrefix = addDummyPrefix;
+    public readonly bool RemoveExtraWhitespaces = removeExtraWhitespaces;
+    public readonly bool EscapeWhitespaces = escapeWhitespaces;
 }
 
 internal static class SentencePieceModelParser
@@ -71,7 +52,7 @@ internal static class SentencePieceModelParser
                 break;
             }
 
-            int fieldNumber = (int)(tag >> 3);
+            var fieldNumber = (int)(tag >> 3);
 
             switch (fieldNumber)
             {
@@ -91,9 +72,9 @@ internal static class SentencePieceModelParser
 
     private static PieceInfo ParsePiece(byte[] data)
     {
-        string piece = "";
-        float score = 0f;
-        int type = 1;
+        var piece = "";
+        var score = 0f;
+        var type = 1;
 
         var input = new CodedInputStream(data);
         while (!input.IsAtEnd)
@@ -122,8 +103,8 @@ internal static class SentencePieceModelParser
 
     private static TrainerSpec ParseTrainerSpec(byte[] data)
     {
-        int unknownId = 0;
-        bool byteFallback = false;
+        var unknownId = 0;
+        var byteFallback = false;
 
         var input = new CodedInputStream(data);
         while (!input.IsAtEnd)
@@ -151,7 +132,7 @@ internal static class SentencePieceModelParser
 
     private static NormalizerSpec ParseNormalizerSpec(byte[] data)
     {
-        byte[] precompiledCharsmap = Array.Empty<byte>();
+        byte[] precompiledCharsmap = [];
         bool addDummyPrefix = true, removeExtraWhitespaces = true, escapeWhitespaces = true;
 
         var input = new CodedInputStream(data);

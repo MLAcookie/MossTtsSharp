@@ -1,3 +1,4 @@
+# download MossTTS ONNX Models
 # (targetDir)
 # ├ MOSS-TTS-Nano-100M-ONNX
 # └ MOSS-Audio-Tokenizer-Nano-ONNX
@@ -21,14 +22,13 @@ function Invoke-GitClone {
     $Result = & git @CloneArgs
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: git clone failed." -ForegroundColor Red
-        Write-Host $Result -ForegroundColor Red
+        Write-Host $Result -ForegroundColor Red 
         exit $LASTEXITCODE
     }
     Write-Host ""
 }
 
 Write-Host "=== MossTTS Model Downloader ===" -ForegroundColor Cyan
-Write-Host ""
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Host "Error: git is not installed or not in PATH." -ForegroundColor Red

@@ -17,7 +17,7 @@ internal class SentencePieceTokenizer : IDisposable
 
         _pieceToId = new Dictionary<string, int>(pieces.Length);
         _pieceScores = new float[pieces.Length];
-        for (int i = 0; i < pieces.Length; i++)
+        for (var i = 0; i < pieces.Length; i++)
         {
             _pieceToId[pieces[i].Piece] = i;
             _pieceScores[i] = pieces[i].Score;
@@ -36,7 +36,7 @@ internal class SentencePieceTokenizer : IDisposable
         BpeMerge(symbols);
 
         var ids = new int[symbols.Count];
-        for (int i = 0; i < symbols.Count; i++)
+        for (var i = 0; i < symbols.Count; i++)
             ids[i] = _pieceToId.GetValueOrDefault(symbols[i], _unknownId);
         return ids;
     }
@@ -44,11 +44,11 @@ internal class SentencePieceTokenizer : IDisposable
     private string Normalize(string text)
     {
         var sb = new StringBuilder(text.Length);
-        bool lastWasWhitespace = false;
+        var lastWasWhitespace = false;
 
-        foreach (char c in text.Normalize(NormalizationForm.FormKC))
+        foreach (var c in text.Normalize(NormalizationForm.FormKC))
         {
-            char mapped = MapChar(c);
+            var mapped = MapChar(c);
 
             if (mapped == ' ' || mapped == '\n' || mapped == '\r' || mapped == '\t')
             {
@@ -70,10 +70,8 @@ internal class SentencePieceTokenizer : IDisposable
         }
 
         var result = sb.ToString().Trim();
-        if (_escapeWhitespaces)
-            result = result.Replace(" ", "▁");
-        if (_addDummyPrefix && result.Length > 0 && !result.StartsWith("▁"))
-            result = "▁" + result;
+        if (_escapeWhitespaces) result = result.Replace(" ", "▁");
+        if (_addDummyPrefix && result.Length > 0 && !result.StartsWith('▁')) result = "▁" + result;
 
         return result;
     }
@@ -84,7 +82,7 @@ internal class SentencePieceTokenizer : IDisposable
             return (char)(c - 0xFF01 + 0x21);
         if (c == 0x3000)
             return ' ';
-        if (c == '\n' || c == '\r' || c == '\t')
+        if (c is '\n' or '\r' or '\t')
             return ' ';
         return c;
     }
@@ -92,10 +90,10 @@ internal class SentencePieceTokenizer : IDisposable
     private List<string> TokenizeToSymbols(string normalized)
     {
         var symbols = new List<string>();
-        int i = 0;
+        var i = 0;
         while (i < normalized.Length)
         {
-            int matchLength = TryMatchSpecialToken(normalized, i);
+            var matchLength = TryMatchSpecialToken(normalized, i);
             if (matchLength > 0)
             {
                 symbols.Add(normalized.Substring(i, matchLength));
@@ -116,7 +114,7 @@ internal class SentencePieceTokenizer : IDisposable
                 i++;
             }
 
-            string charStr = char.ConvertFromUtf32(codePoint);
+            var charStr = char.ConvertFromUtf32(codePoint);
 
             if (_pieceToId.ContainsKey(charStr))
             {
@@ -124,23 +122,24 @@ internal class SentencePieceTokenizer : IDisposable
             }
             else
             {
-                byte[] bytes = Encoding.UTF8.GetBytes(charStr);
-                foreach (byte b in bytes)
-                    symbols.Add($"<0x{b:X2}>");
+                var bytes = Encoding.UTF8.GetBytes(charStr);
+                symbols.AddRange(bytes.Select(b => $"<0x{b:X2}>"));
             }
         }
+
         return symbols;
     }
 
     private int TryMatchSpecialToken(string text, int startPos)
     {
         if (text[startPos] != '<') return 0;
-        for (int end = startPos + 1; end <= text.Length && end - startPos <= 20; end++)
+        for (var end = startPos + 1; end <= text.Length && end - startPos <= 20; end++)
         {
-            string sub = text.Substring(startPos, end - startPos);
-            if (_pieceToId.TryGetValue(sub, out int id) && id != _unknownId && id <= 14)
+            var sub = text.Substring(startPos, end - startPos);
+            if (_pieceToId.TryGetValue(sub, out var id) && id != _unknownId && id <= 14)
                 return end - startPos;
         }
+
         return 0;
     }
 
@@ -148,15 +147,15 @@ internal class SentencePieceTokenizer : IDisposable
     {
         while (true)
         {
-            int bestPos = -1;
-            float bestScore = float.NegativeInfinity;
+            var bestPos = -1;
+            var bestScore = float.NegativeInfinity;
 
-            for (int i = 0; i < symbols.Count - 1; i++)
+            for (var i = 0; i < symbols.Count - 1; i++)
             {
-                string pair = symbols[i] + symbols[i + 1];
-                if (_pieceToId.TryGetValue(pair, out int id) && id != _unknownId)
+                var pair = symbols[i] + symbols[i + 1];
+                if (_pieceToId.TryGetValue(pair, out var id) && id != _unknownId)
                 {
-                    float score = _pieceScores[id];
+                    var score = _pieceScores[id];
                     if (score > bestScore)
                     {
                         bestPos = i;
@@ -165,13 +164,13 @@ internal class SentencePieceTokenizer : IDisposable
                 }
             }
 
-            if (bestPos < 0)
-                break;
-
+            if (bestPos < 0) break;
             symbols[bestPos] = symbols[bestPos] + symbols[bestPos + 1];
             symbols.RemoveAt(bestPos + 1);
         }
     }
 
-    public void Dispose() { }
+    public void Dispose()
+    {
+    }
 }

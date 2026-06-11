@@ -67,7 +67,7 @@ public static class TtsCommandHandler
             if (output != null)
             {
                 var allSamples = new List<float>();
-                int frameCount = 0;
+                var frameCount = 0;
 
                 pipeline.SynthesizeStream(text, prompt.FullName, audio =>
                 {
@@ -78,7 +78,7 @@ public static class TtsCommandHandler
 
                 sw.Stop();
                 Console.WriteLine();
-                float duration = allSamples.Count / (float)MossModelConfig.SampleRate / MossModelConfig.Channels;
+                var duration = allSamples.Count / (float)MossModelConfig.SampleRate / MossModelConfig.Channels;
                 Console.WriteLine($"Generated: {duration:F2}s in {frameCount} frames, {sw.Elapsed.TotalSeconds:F1}s");
 
                 AudioFile.Write(output.FullName, allSamples.ToArray(), MossModelConfig.SampleRate, MossModelConfig.Channels);

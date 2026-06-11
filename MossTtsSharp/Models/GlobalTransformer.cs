@@ -29,7 +29,7 @@ internal class GlobalTransformer : IDisposable
         _stepSession = new InferenceSession(
             Path.Combine(ttsModelDir, "moss_tts_decode_step.onnx"), opts);
 
-        for (int i = 0; i < NumLayers; i++)
+        for (var i = 0; i < NumLayers; i++)
         {
             _kvKeys[i] = Array.Empty<float>();
             _kvValues[i] = Array.Empty<float>();
@@ -38,17 +38,17 @@ internal class GlobalTransformer : IDisposable
 
     public float[] Prefill(int[][] inputIds, bool[] attentionMask)
     {
-        int seqLen = inputIds.Length;
+        var seqLen = inputIds.Length;
         if (seqLen == 0)
             return Array.Empty<float>();
 
-        int[] flat = new int[seqLen * LocalPositions];
-        for (int i = 0; i < seqLen; i++)
-            for (int j = 0; j < LocalPositions; j++)
+        var flat = new int[seqLen * LocalPositions];
+        for (var i = 0; i < seqLen; i++)
+            for (var j = 0; j < LocalPositions; j++)
                 flat[i * LocalPositions + j] = inputIds[i][j];
 
-        int[] maskInt = new int[seqLen];
-        for (int i = 0; i < seqLen; i++)
+        var maskInt = new int[seqLen];
+        for (var i = 0; i < seqLen; i++)
             maskInt[i] = attentionMask[i] ? 1 : 0;
 
         var inputs = new List<NamedOnnxValue>
@@ -63,7 +63,7 @@ internal class GlobalTransformer : IDisposable
         var hidden = results[0].AsTensor<float>().ToArray();
         _totalPastLen = 0;
 
-        for (int l = 0; l < NumLayers; l++)
+        for (var l = 0; l < NumLayers; l++)
         {
             _kvKeys[l] = CopyToBuffer(_kvKeys[l], results[1 + 2 * l].AsTensor<float>());
             _kvValues[l] = CopyToBuffer(_kvValues[l], results[2 + 2 * l].AsTensor<float>());
@@ -71,7 +71,7 @@ internal class GlobalTransformer : IDisposable
 
         _totalPastLen = seqLen;
 
-        float[] lastHidden = new float[HiddenSize];
+        var lastHidden = new float[HiddenSize];
         Array.Copy(hidden, (seqLen - 1) * HiddenSize, lastHidden, 0, HiddenSize);
         return lastHidden;
     }
@@ -88,7 +88,7 @@ internal class GlobalTransformer : IDisposable
                 new DenseTensor<int>(pastValidLengths, [1])),
         };
 
-        for (int l = 0; l < NumLayers; l++)
+        for (var l = 0; l < NumLayers; l++)
         {
             inputs.Add(NamedOnnxValue.CreateFromTensor($"past_key_{l}",
                 new DenseTensor<float>(_kvKeys[l], [1, _totalPastLen, NumHeads, HeadDim])));
@@ -99,7 +99,7 @@ internal class GlobalTransformer : IDisposable
         using var results = _stepSession.Run(inputs);
         var hidden = results[0].AsTensor<float>().ToArray();
 
-        for (int l = 0; l < NumLayers; l++)
+        for (var l = 0; l < NumLayers; l++)
         {
             _kvKeys[l] = CopyToBuffer(_kvKeys[l], results[1 + 2 * l].AsTensor<float>());
             _kvValues[l] = CopyToBuffer(_kvValues[l], results[2 + 2 * l].AsTensor<float>());
@@ -111,7 +111,7 @@ internal class GlobalTransformer : IDisposable
 
     public void ResetCache()
     {
-        for (int i = 0; i < NumLayers; i++)
+        for (var i = 0; i < NumLayers; i++)
         {
             _kvKeys[i] = Array.Empty<float>();
             _kvValues[i] = Array.Empty<float>();
@@ -121,10 +121,10 @@ internal class GlobalTransformer : IDisposable
 
     private static float[] CopyToBuffer(float[] buf, Tensor<float> src)
     {
-        int n = (int)src.Length;
+        var n = (int)src.Length;
         if (buf.Length == n)
         {
-            float[] data = src.ToArray();
+            var data = src.ToArray();
             Array.Copy(data, 0, buf, 0, n);
             return buf;
         }

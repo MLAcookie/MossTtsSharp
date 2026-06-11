@@ -3,15 +3,8 @@ using MossTtsSharp.Tokenizer;
 
 namespace MossTtsSharp.Generator;
 
-internal class PromptBuilder : IDisposable
+internal class PromptBuilder(SentencePieceTokenizer tokenizer) : IDisposable
 {
-    private readonly SentencePieceTokenizer _tokenizer;
-
-    public PromptBuilder(SentencePieceTokenizer tokenizer)
-    {
-        _tokenizer = tokenizer;
-    }
-
     private const string UserRolePrefix = "user\n";
     private const string UserTemplateReferencePrefix = "<user_inst>\n- Reference(s):\n";
     private const string UserTemplateAfterReference =
@@ -25,12 +18,12 @@ internal class PromptBuilder : IDisposable
     private const string UserTemplateSuffix = "</user_inst>";
     private const string AssistantRolePrefix = "assistant\n";
 
-    private int[] Encode(string text) => _tokenizer.Encode(text);
+    private int[] Encode(string text) => tokenizer.Encode(text);
 
     private static int[] BuildTextRow(int textTokenId)
     {
         var row = new int[MossModelConfig.LocalPositions];
-        for (int i = 0; i < MossModelConfig.LocalPositions; i++)
+        for (var i = 0; i < MossModelConfig.LocalPositions; i++)
             row[i] = MossModelConfig.AudioPadTokenId;
         row[0] = textTokenId;
         return row;
@@ -38,23 +31,20 @@ internal class PromptBuilder : IDisposable
 
     private static List<int[]> BuildTextRows(IEnumerable<int> tokenIds)
     {
-        var rows = new List<int[]>();
-        foreach (var tid in tokenIds)
-            rows.Add(BuildTextRow(tid));
-        return rows;
+        return tokenIds.Select(BuildTextRow).ToList();
     }
 
     private static List<int[]> BuildAudioPrefixRows(int[][] promptAudioCodes, int slotTokenId)
     {
-        int frames = promptAudioCodes.Length;
+        var frames = promptAudioCodes.Length;
         var rows = new List<int[]>(frames);
-        for (int t = 0; t < frames; t++)
+        for (var t = 0; t < frames; t++)
         {
             var row = new int[MossModelConfig.LocalPositions];
-            for (int i = 0; i < MossModelConfig.LocalPositions; i++)
+            for (var i = 0; i < MossModelConfig.LocalPositions; i++)
                 row[i] = MossModelConfig.AudioPadTokenId;
             row[0] = slotTokenId;
-            for (int c = 0; c < MossModelConfig.Nvq; c++)
+            for (var c = 0; c < MossModelConfig.Nvq; c++)
                 row[c + 1] = promptAudioCodes[t][c];
             rows.Add(row);
         }
@@ -76,8 +66,8 @@ internal class PromptBuilder : IDisposable
     private List<int> BuildAssistantPromptPrefix()
     {
         return Encode(UserTemplateSuffix)
-            .Concat(new int[] { MossModelConfig.ImEndTokenId })
-            .Concat(new int[] { MossModelConfig.ImStartTokenId })
+            .Concat([MossModelConfig.ImEndTokenId])
+            .Concat([MossModelConfig.ImStartTokenId])
             .Concat(Encode(AssistantRolePrefix))
             .ToList();
     }
@@ -89,14 +79,14 @@ internal class PromptBuilder : IDisposable
         var textTokenIds = Encode(text);
 
         var promptTokenIds = BuildUserPromptPrefix()
-            .Concat(new int[] { MossModelConfig.AudioStartTokenId })
+            .Concat([MossModelConfig.AudioStartTokenId])
             .ToList();
 
         var suffixTokenIds = new List<int> { MossModelConfig.AudioEndTokenId }
             .Concat(BuildUserPromptAfterReference())
             .Concat(textTokenIds)
             .Concat(BuildAssistantPromptPrefix())
-            .Concat(new int[] { MossModelConfig.AudioStartTokenId })
+            .Concat([MossModelConfig.AudioStartTokenId])
             .ToList();
 
         var rows = new List<int[]>();
@@ -123,7 +113,7 @@ internal class PromptBuilder : IDisposable
 
         var rows = new List<int[]>();
         rows.AddRange(BuildTextRows(promptTokenIds));
-        rows.AddRange(BuildTextRows(new int[] { MossModelConfig.AudioStartTokenId }));
+        rows.AddRange(BuildTextRows([MossModelConfig.AudioStartTokenId]));
 
         var inputIds = rows.ToArray();
         var attentionMask = new bool[inputIds.Length];
@@ -134,13 +124,13 @@ internal class PromptBuilder : IDisposable
     public static int[] BuildGenerationRow(int[] audioTokenIds)
     {
         var row = new int[MossModelConfig.LocalPositions];
-        for (int i = 0; i < MossModelConfig.LocalPositions; i++)
+        for (var i = 0; i < MossModelConfig.LocalPositions; i++)
             row[i] = MossModelConfig.AudioPadTokenId;
         row[0] = MossModelConfig.AudioAssistantSlotTokenId;
-        for (int c = 0; c < Math.Min(audioTokenIds.Length, MossModelConfig.Nvq); c++)
+        for (var c = 0; c < Math.Min(audioTokenIds.Length, MossModelConfig.Nvq); c++)
             row[c + 1] = audioTokenIds[c];
         return row;
     }
 
-    public void Dispose() => _tokenizer.Dispose();
+    public void Dispose() => tokenizer.Dispose();
 }
